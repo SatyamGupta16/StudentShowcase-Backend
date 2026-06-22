@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const path = require("path");
 require("dotenv").config();
 
 // Database configuration
@@ -9,6 +10,7 @@ const connectDB = require("./config/db");
 const studentRoutes = require("./routes/studentRoutes");
 const authRoutes = require("./routes/authRoutes");
 const projectRoutes = require("./routes/projectRoutes");
+const productRoutes = require("./routes/productRoutes");
 
 // Initialize express app
 const app = express();
@@ -21,6 +23,9 @@ app.use(cors());
 
 // Parse JSON requests
 app.use(express.json());
+
+// Make uploads folder public
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // Health check route
 app.get("/", (req, res) => {
@@ -38,6 +43,9 @@ app.use("/api/students", studentRoutes);
 
 // Project routes
 app.use("/api/projects", projectRoutes);
+
+// Product routes
+app.use("/api/products", productRoutes);
 
 // Server port
 const PORT = process.env.PORT || 27017;

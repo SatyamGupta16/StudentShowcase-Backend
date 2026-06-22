@@ -8,12 +8,16 @@ const {
   deleteStudent,
 } = require("../controllers/studentController");
 
+const authMiddleware = require("../middleware/authMiddleware");
+
 const router = express.Router();
 
+// Public Routes
 router.get("/", getStudents);
 router.get("/:id", getStudentById);
-router.post("/", createStudent);
-router.put("/:id", updateStudent);
-router.delete("/:id", deleteStudent);
 
+// Protected Routes
+router.post("/", authMiddleware, createStudent);
+router.put("/:id", authMiddleware, updateStudent);
+router.delete("/:id", authMiddleware, deleteStudent)
 module.exports = router;

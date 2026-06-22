@@ -1,4 +1,8 @@
-node_modules
+node_modules/
 .env
-.vscode
+.vscode/
 .DS_Store
+
+# uploaded product images
+uploads/*
+!uploads/.gitkeep
