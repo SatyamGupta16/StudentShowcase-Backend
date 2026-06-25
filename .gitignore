@@ -4,5 +4,5 @@ node_modules/
 .DS_Store
 
 # uploaded product images
-uploads/*
-!uploads/.gitkeep
+# uploads/*
+# !uploads/.gitkeep
