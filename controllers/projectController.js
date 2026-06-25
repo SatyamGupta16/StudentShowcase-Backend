@@ -1,12 +1,38 @@
 const Project = require("../models/Project");
 
+// helper: safely parse techStack
+const parseTechStack = (techStack) => {
+  if (!techStack) return [];
+
+  if (Array.isArray(techStack)) {
+    return techStack;
+  }
+
+  try {
+    const parsed = JSON.parse(techStack);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (error) {
+    return techStack
+      .split(",")
+      .map((tech) => tech.trim())
+      .filter(Boolean);
+  }
+};
+
+// helper: safely parse boolean
+const parseBoolean = (value) => {
+  return value === true || value === "true";
+};
+
 // GET all projects
 exports.getProjects = async (req, res) => {
   try {
-    const projects = await Project.find().populate(
-      "student",
-      "name email"
-    );
+    const projects = await Project.find()
+      .populate(
+        "student",
+        "name email profilePhoto batch"
+      )
+      .sort({ createdAt: -1 });
 
     res.status(200).json(projects);
   } catch (error) {
@@ -23,7 +49,7 @@ exports.getProjectById = async (req, res) => {
 
     const project = await Project.findById(id).populate(
       "student",
-      "name email"
+      "name email profilePhoto batch"
     );
 
     if (!project) {
@@ -46,23 +72,25 @@ exports.createProject = async (req, res) => {
     const {
       title,
       description,
-      screenshot,
-      techStack,
       githubUrl,
       liveDemoUrl,
       student,
       isFeatured,
     } = req.body;
 
+    const screenshot = req.file
+      ? `/uploads/${req.file.filename}`
+      : "";
+
     const project = await Project.create({
       title,
       description,
       screenshot,
-      techStack,
+      techStack: parseTechStack(req.body.techStack),
       githubUrl,
       liveDemoUrl,
       student,
-      isFeatured,
+      isFeatured: parseBoolean(isFeatured),
     });
 
     res.status(201).json(project);
@@ -78,13 +106,32 @@ exports.updateProject = async (req, res) => {
   try {
     const { id } = req.params;
 
+    const updateData = {
+      ...req.body,
+    };
+
+    if (req.body.techStack !== undefined) {
+      updateData.techStack = parseTechStack(req.body.techStack);
+    }
+
+    if (req.body.isFeatured !== undefined) {
+      updateData.isFeatured = parseBoolean(req.body.isFeatured);
+    }
+
+    if (req.file) {
+      updateData.screenshot = `/uploads/${req.file.filename}`;
+    }
+
     const project = await Project.findByIdAndUpdate(
       id,
-      req.body,
+      updateData,
       {
         new: true,
         runValidators: true,
       }
+    ).populate(
+      "student",
+      "name email profilePhoto batch"
     );
 
     if (!project) {

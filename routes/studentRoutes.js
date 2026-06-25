@@ -9,6 +9,7 @@ const {
 } = require("../controllers/studentController");
 
 const authMiddleware = require("../middleware/authMiddleware");
+const upload = require("../middleware/uploadMiddleware");
 
 const router = express.Router();
 
@@ -17,7 +18,24 @@ router.get("/", getStudents);
 router.get("/:id", getStudentById);
 
 // Protected Routes
-router.post("/", authMiddleware, createStudent);
-router.put("/:id", authMiddleware, updateStudent);
-router.delete("/:id", authMiddleware, deleteStudent)
+router.post(
+  "/",
+  authMiddleware,
+  upload.single("profilePhoto"),
+  createStudent
+);
+
+router.put(
+  "/:id",
+  authMiddleware,
+  upload.single("profilePhoto"),
+  updateStudent
+);
+
+router.delete(
+  "/:id",
+  authMiddleware,
+  deleteStudent
+);
+
 module.exports = router;

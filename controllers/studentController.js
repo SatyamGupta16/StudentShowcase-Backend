@@ -1,9 +1,35 @@
 const Student = require("../models/Student");
 
+// helper: safely parse skills
+const parseSkills = (skills) => {
+  if (!skills) return [];
+
+  if (Array.isArray(skills)) {
+    return skills;
+  }
+
+  try {
+    const parsed = JSON.parse(skills);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (error) {
+    return skills
+      .split(",")
+      .map((skill) => skill.trim())
+      .filter(Boolean);
+  }
+};
+
+// helper: safely parse boolean
+const parseBoolean = (value) => {
+  return value === true || value === "true";
+};
+
 // GET all students
 exports.getStudents = async (req, res) => {
   try {
-    const students = await Student.find();
+    const students = await Student.find().sort({
+      createdAt: -1,
+    });
 
     res.status(200).json(students);
   } catch (error) {
@@ -41,24 +67,26 @@ exports.createStudent = async (req, res) => {
       name,
       email,
       bio,
-      profilePhoto,
-      skills,
       github,
       linkedin,
       batch,
       isFeatured,
     } = req.body;
 
+    const profilePhoto = req.file
+      ? `/uploads/${req.file.filename}`
+      : "";
+
     const student = await Student.create({
       name,
       email,
       bio,
       profilePhoto,
-      skills,
+      skills: parseSkills(req.body.skills),
       github,
       linkedin,
       batch,
-      isFeatured,
+      isFeatured: parseBoolean(isFeatured),
     });
 
     res.status(201).json(student);
@@ -74,10 +102,29 @@ exports.updateStudent = async (req, res) => {
   try {
     const { id } = req.params;
 
+    const updateData = {
+      ...req.body,
+    };
+
+    if (req.body.skills !== undefined) {
+      updateData.skills = parseSkills(req.body.skills);
+    }
+
+    if (req.body.isFeatured !== undefined) {
+      updateData.isFeatured = parseBoolean(req.body.isFeatured);
+    }
+
+    if (req.file) {
+      updateData.profilePhoto = `/uploads/${req.file.filename}`;
+    }
+
     const student = await Student.findByIdAndUpdate(
       id,
-      req.body,
-      { new: true }
+      updateData,
+      {
+        new: true,
+        runValidators: true,
+      }
     );
 
     if (!student) {

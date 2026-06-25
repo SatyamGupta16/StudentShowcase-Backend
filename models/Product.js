@@ -1,9 +1,41 @@
 const mongoose = require("mongoose");
 
-const ProductSchema = new mongoose.Schema({
-  name: String,
-  image: String,
-});
+const productSchema = new mongoose.Schema(
+  {
+    name: {
+      type: String,
+      required: true,
+      trim: true,
+    },
 
-// GET http://localhost:27017/api/products
-module.exports = mongoose.model("Product", ProductSchema);
+    description: {
+      type: String,
+      default: "",
+    },
+
+    price: {
+      type: Number,
+      default: 0,
+    },
+
+    category: {
+      type: String,
+      default: "",
+    },
+
+    image: {
+      type: String,
+      default: "",
+    },
+
+    isFeatured: {
+      type: Boolean,
+      default: false,
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
+
+module.exports = mongoose.model("Product", productSchema);
