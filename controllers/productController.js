@@ -50,7 +50,7 @@ exports.createProduct = async (req, res) => {
     } = req.body;
 
     const image = req.file
-      ? `http://localhost:27017/uploads/${req.file.filename}`
+      ? `/uploads/${req.file.filename}`
       : "";
 
     const product = await Product.create({
@@ -90,7 +90,7 @@ exports.updateProduct = async (req, res) => {
     }
 
     if (req.file) {
-      updateData.image = `http://localhost:27017/uploads/${req.file.filename}`;
+      updateData.image = `/uploads/${req.file.filename}`;
     }
 
     const product =
