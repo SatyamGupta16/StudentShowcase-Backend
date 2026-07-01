@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const studentSchema = new mongoose.Schema(
+const userSchema = new mongoose.Schema(
   {
     name: {
       type: String,
@@ -14,6 +14,17 @@ const studentSchema = new mongoose.Schema(
       unique: true,
       lowercase: true,
       trim: true,
+    },
+
+    password: {
+      type: String,
+      required: true,
+    },
+
+    role: {
+      type: String,
+      enum: ["admin", "student"],
+      default: "student",
     },
 
     bio: {
@@ -44,7 +55,7 @@ const studentSchema = new mongoose.Schema(
 
     batch: {
       type: String,
-      required: true,
+      default: "",
     },
 
     isFeatured: {
@@ -57,5 +68,4 @@ const studentSchema = new mongoose.Schema(
   }
 );
 
-// GET http://localhost:27017/test
-module.exports = mongoose.model("Student", studentSchema);
+module.exports = mongoose.model("User", userSchema);

@@ -1,68 +1,125 @@
-const Admin = require("../models/Admin");
+const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
-// REGISTER
-// POST http://localhost:27017/api/auth/register
+// ======================================================
+// REGISTER USER
+// POST /api/auth/register
+// Public Route
+// ======================================================
 exports.register = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    let { name, email, password } = req.body;
 
-    const existingAdmin = await Admin.findOne({ email });
-
-    if (existingAdmin) {
+    // Validate required fields
+    if (!name || !email || !password) {
       return res.status(400).json({
-        message: "Admin already exists",
+        success: false,
+        message: "All fields are required",
       });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    // Normalize input
+    name = name.trim();
+    email = email.trim().toLowerCase();
 
-    const admin = await Admin.create({
+    // Check if user already exists
+    const existingUser = await User.findOne({
+      email,
+    });
+
+    if (existingUser) {
+      return res.status(400).json({
+        success: false,
+        message: "User already exists",
+      });
+    }
+
+    // Hash password
+    const hashedPassword = await bcrypt.hash(
+      password,
+      10
+    );
+
+    // Create new student user
+    const user = await User.create({
       name,
       email,
       password: hashedPassword,
+      role: "student",
     });
 
+    // Send response
     res.status(201).json({
-      message: "Admin registered successfully",
-      admin,
+      success: true,
+      message: "User registered successfully",
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
     });
   } catch (error) {
+    console.error("Register Error:", error);
+
     res.status(500).json({
-      message: error.message,
+      success: false,
+      message: "Internal server error",
     });
   }
 };
 
-// LOGIN
-// POST http://localhost:27017/api/auth/login
+// ======================================================
+// LOGIN USER
+// POST /api/auth/login
+// Public Route
+// ======================================================
 exports.login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    let { email, password } = req.body;
 
-    const admin = await Admin.findOne({ email });
-
-    if (!admin) {
+    // Validate required fields
+    if (!email || !password) {
       return res.status(400).json({
-        message: "Invalid credentials",
+        success: false,
+        message: "Email and password are required",
       });
     }
 
+    // Normalize email
+    email = email.trim().toLowerCase();
+
+    // Find user
+    const user = await User.findOne({
+      email,
+    });
+
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid email or password",
+      });
+    }
+
+    // Compare password
     const isMatch = await bcrypt.compare(
       password,
-      admin.password
+      user.password
     );
 
     if (!isMatch) {
       return res.status(400).json({
-        message: "Invalid credentials",
+        success: false,
+        message: "Invalid email or password",
       });
     }
 
+    // Generate JWT Token
     const token = jwt.sign(
       {
-        id: admin._id,
+        id: user._id,
+        role: user.role,
       },
       process.env.JWT_SECRET,
       {
@@ -70,13 +127,24 @@ exports.login = async (req, res) => {
       }
     );
 
+    // Send response
     res.status(200).json({
+      success: true,
       message: "Login successful",
       token,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
     });
   } catch (error) {
+    console.error("Login Error:", error);
+
     res.status(500).json({
-      message: error.message,
+      success: false,
+      message: "Internal server error",
     });
   }
 };

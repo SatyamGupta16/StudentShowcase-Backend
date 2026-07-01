@@ -33,9 +33,9 @@ const projectSchema = new mongoose.Schema(
       required: true,
     },
 
-    student: {
+    user: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Student",
+      ref: "User",
       required: true,
     },
 

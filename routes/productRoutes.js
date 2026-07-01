@@ -1,7 +1,8 @@
 const express = require("express");
 
-const upload = require("../middleware/uploadMiddleware");
 const authMiddleware = require("../middleware/authMiddleware");
+const adminMiddleware = require("../middleware/adminMiddleware");
+const upload = require("../middleware/uploadMiddleware");
 
 const {
   createProduct,
@@ -17,10 +18,11 @@ const router = express.Router();
 router.get("/", getProducts);
 router.get("/:id", getProductById);
 
-// Protected routes
+// Protected routes Admin
 router.post(
   "/",
   authMiddleware,
+  adminMiddleware,
   upload.single("image"),
   createProduct
 );
@@ -28,13 +30,14 @@ router.post(
 router.put(
   "/:id",
   authMiddleware,
+  adminMiddleware,
   upload.single("image"),
   updateProduct
 );
 
 router.delete(
   "/:id",
-  authMiddleware,
+  authMiddleware,adminMiddleware,
   deleteProduct
 );
 

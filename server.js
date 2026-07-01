@@ -7,7 +7,7 @@ require("dotenv").config();
 const connectDB = require("./config/db");
 
 // Route imports
-const studentRoutes = require("./routes/studentRoutes");
+const userRoutes = require("./routes/userRoutes");
 const authRoutes = require("./routes/authRoutes");
 const projectRoutes = require("./routes/projectRoutes");
 const productRoutes = require("./routes/productRoutes");
@@ -50,7 +50,7 @@ app.get("/", (req, res) => {
 app.use("/api/auth", authRoutes);
 
 // Student routes
-app.use("/api/students", studentRoutes);
+app.use("/api/users", userRoutes);
 
 // Project routes
 app.use("/api/projects", projectRoutes);

@@ -10,25 +10,38 @@ const authMiddleware = (req, res, next) => {
       });
     }
 
-    const token = authHeader.split(" ")[1];
+    // Authorization: Bearer <token>
+    const parts = authHeader.split(" ");
 
-    if (!token) {
+    if (parts.length !== 2 || parts[0] !== "Bearer") {
       return res.status(401).json({
         message: "Invalid token format",
       });
     }
+
+    const token = parts[1];
 
     const decoded = jwt.verify(
       token,
       process.env.JWT_SECRET
     );
 
-    req.user = decoded;
+    // decoded = {
+    //   id: "...",
+    //   role: "admin" | "student",
+    //   iat: ...,
+    //   exp: ...
+    // }
+
+    req.user = {
+      id: decoded.id,
+      role: decoded.role,
+    };
 
     next();
   } catch (error) {
     return res.status(401).json({
-      message: "Invalid token",
+      message: "Invalid or expired token",
     });
   }
 };

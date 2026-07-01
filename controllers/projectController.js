@@ -1,6 +1,12 @@
 const Project = require("../models/Project");
 
-// helper: safely parse techStack
+// ======================================================
+// Helper: Parse Tech Stack
+// Supports:
+// 1. Array
+// 2. JSON string
+// 3. Comma-separated string
+// ======================================================
 const parseTechStack = (techStack) => {
   if (!techStack) return [];
 
@@ -19,54 +25,77 @@ const parseTechStack = (techStack) => {
   }
 };
 
-// helper: safely parse boolean
+// ======================================================
+// Helper: Parse Boolean
+// ======================================================
 const parseBoolean = (value) => {
   return value === true || value === "true";
 };
 
-// GET all projects
+// ======================================================
+// GET ALL PROJECTS
+// ======================================================
 exports.getProjects = async (req, res) => {
   try {
     const projects = await Project.find()
       .populate(
-        "student",
+        "user",
         "name email profilePhoto batch"
       )
-      .sort({ createdAt: -1 });
+      .sort({
+        createdAt: -1,
+      });
 
-    res.status(200).json(projects);
+    res.status(200).json({
+      success: true,
+      projects,
+    });
   } catch (error) {
+    console.error(error);
+
     res.status(500).json({
-      message: error.message,
+      success: false,
+      message: "Internal server error",
     });
   }
 };
 
-// GET project by ID
+// ======================================================
+// GET PROJECT BY ID
+// ======================================================
 exports.getProjectById = async (req, res) => {
   try {
     const { id } = req.params;
 
     const project = await Project.findById(id).populate(
-      "student",
+      "user",
       "name email profilePhoto batch"
     );
 
     if (!project) {
       return res.status(404).json({
+        success: false,
         message: "Project not found",
       });
     }
 
-    res.status(200).json(project);
+    res.status(200).json({
+      success: true,
+      project,
+    });
   } catch (error) {
+    console.error(error);
+
     res.status(500).json({
-      message: error.message,
+      success: false,
+      message: "Internal server error",
     });
   }
 };
 
-// CREATE project
+// ======================================================
+// CREATE PROJECT
+// ======================================================
 exports.createProject = async (req, res) => {
   try {
     const {
@@ -74,9 +103,22 @@ exports.createProject = async (req, res) => {
       description,
       githubUrl,
       liveDemoUrl,
-      student,
+      user,
       isFeatured,
     } = req.body;
+
+    if (
+      !title ||
+      !description ||
+      !githubUrl ||
+      !liveDemoUrl ||
+      !user
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "All fields are required",
+      });
+    }
 
     const screenshot = req.file
       ? `/uploads/${req.file.filename}`
@@ -89,19 +131,28 @@ exports.createProject = async (req, res) => {
       techStack: parseTechStack(req.body.techStack),
       githubUrl,
       liveDemoUrl,
-      student,
+      user,
       isFeatured: parseBoolean(isFeatured),
     });
 
-    res.status(201).json(project);
+    res.status(201).json({
+      success: true,
+      message: "Project created successfully",
+      project,
+    });
   } catch (error) {
+    console.error(error);
+
     res.status(500).json({
-      message: error.message,
+      success: false,
+      message: "Internal server error",
     });
   }
 };
 
-// UPDATE project
+// ======================================================
+// UPDATE PROJECT
+// ======================================================
 exports.updateProject = async (req, res) => {
   try {
     const { id } = req.params;
@@ -111,11 +162,15 @@ exports.updateProject = async (req, res) => {
     };
 
     if (req.body.techStack !== undefined) {
-      updateData.techStack = parseTechStack(req.body.techStack);
+      updateData.techStack = parseTechStack(
+        req.body.techStack
+      );
     }
 
     if (req.body.isFeatured !== undefined) {
-      updateData.isFeatured = parseBoolean(req.body.isFeatured);
+      updateData.isFeatured = parseBoolean(
+        req.body.isFeatured
+      );
     }
 
     if (req.file) {
@@ -130,25 +185,35 @@ exports.updateProject = async (req, res) => {
         runValidators: true,
       }
     ).populate(
-      "student",
+      "user",
       "name email profilePhoto batch"
     );
 
     if (!project) {
       return res.status(404).json({
+        success: false,
         message: "Project not found",
       });
     }
 
-    res.status(200).json(project);
+    res.status(200).json({
+      success: true,
+      message: "Project updated successfully",
+      project,
+    });
   } catch (error) {
+    console.error(error);
+
     res.status(500).json({
-      message: error.message,
+      success: false,
+      message: "Internal server error",
     });
   }
 };
 
-// DELETE project
+// ======================================================
+// DELETE PROJECT
+// ======================================================
 exports.deleteProject = async (req, res) => {
   try {
     const { id } = req.params;
@@ -157,16 +222,21 @@ exports.deleteProject = async (req, res) => {
 
     if (!project) {
       return res.status(404).json({
+        success: false,
         message: "Project not found",
       });
     }
 
     res.status(200).json({
+      success: true,
       message: "Project deleted successfully",
     });
   } catch (error) {
+    console.error(error);
+
     res.status(500).json({
-      message: error.message,
+      success: false,
+      message: "Internal server error",
     });
   }
 };

@@ -8,8 +8,9 @@ const {
   deleteProject,
 } = require("../controllers/projectController");
 
-const authMiddleware = require("../middleware/authMiddleware");
 const upload = require("../middleware/uploadMiddleware");
+const authMiddleware = require("../middleware/authMiddleware");
+const adminMiddleware = require("../middleware/adminMiddleware");
 
 const router = express.Router();
 
@@ -21,6 +22,7 @@ router.get("/:id", getProjectById);
 router.post(
   "/",
   authMiddleware,
+  adminMiddleware,
   upload.single("screenshot"),
   createProject
 );
@@ -28,12 +30,15 @@ router.post(
 router.put(
   "/:id",
   authMiddleware,
+  adminMiddleware,
+  upload.single("screenshot"),
   updateProject
 );
 
 router.delete(
   "/:id",
   authMiddleware,
+  adminMiddleware,
   deleteProject
 );
 
